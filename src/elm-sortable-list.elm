@@ -4,7 +4,7 @@ import Html.Events exposing (onClick, on)
 import Json.Decode as Decode
 import Mouse exposing (Position)
 
-
+import Styles
 
 main =
   Html.program
@@ -134,37 +134,16 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div 
-    [ style 
-      [ ("width","360px")
-      , ("margin","auto")
-      , ("padding","0 0 8px 0")
-      , ("backgroundColor","#fafafa")
-      , ("fontFamily","sans-serif")
-      ]
-    ]
+    [ style Styles.pageContainer ]
     [ div 
-      [ style 
-        [("display","flex")
-        ,("padding","8px")
-        ,("margin","8px 0")
-        ] 
-      ] 
+      [ style Styles.listHeader ]
       [ h3
-        [ style
-          [ ("flex","1 0 auto")
-          , ("margin","0")
-          ]
-        ]
+        [ style Styles.headerTitle ]
         [ text "Sortable favorite movies" ]
       , toggleButton model 
       ]
     , ul 
-      [ style 
-        [ ("transformStyle","preserve-3d")
-        , ("padding","0")
-        , ("margin","8px 0")
-        ]
-      ]
+      [ style Styles.listContainer ]
       <| List.indexedMap (itemView model) model.data
     ]
 
@@ -222,8 +201,8 @@ itemView model idx item =
           []
           
   in
-    li [ style <| itemStyle ++ moveStyle ++ makingWayStyle ] 
-      [ div [ style [("flex","1 0 auto"),("display","inline-block")] ] [ text item ]
+    li [ style <| Styles.listItem ++ moveStyle ++ makingWayStyle ] 
+      [ div [ style Styles.itemText ] [ text item ]
       , button 
         [ style buttonStyle, onMouseDown <| DragStart idx ]
         [ text "drag" ] 
@@ -236,18 +215,6 @@ getY model =
         currentY - startY
       Nothing ->
         0
-
-itemStyle =
-  [ ("listStyleType","none")
-  , ("margin","8px")
-  , ("padding","8px")
-  , ("height","24px")
-  , ("backgroundColor", "white")
-  , ("border","1px solid rgba(0,0,0,.27)")
-  , ("border-radius","2px")
-  , ("box-shadow", "0 1px 2px rgba(0,0,0,0.24)")
-  , ("display","flex")
-  ]
 
 onMouseDown : (Position -> msg) -> Attribute msg
 onMouseDown msg =
