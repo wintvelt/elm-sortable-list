@@ -14,3 +14,6 @@ and a helper function to move the dragged item to the new position.
 
 For readability of the main app, the styles have been placed in 
 a separate Styles.elm file. 
+
+voorbeeld plaatje  
+![vogels](/img/birds.jpg)
