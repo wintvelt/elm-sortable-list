@@ -3,6 +3,8 @@
 An small example app demonstrating a list that you can
 reorder using drag and drop.
 
+![gif](/img/looping.gif)
+
 The example uses subscriptions to `Mouse.moves` and `Mouse.ups`
 to track the drag movement in the vertical axis.
 
@@ -14,6 +16,4 @@ and a helper function to move the dragged item to the new position.
 
 For readability of the main app, the styles have been placed in 
 a separate Styles.elm file. 
-
-voorbeeld plaatje  
-![vogels](/img/birds.jpg)
+  
