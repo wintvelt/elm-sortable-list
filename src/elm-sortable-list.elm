@@ -1,3 +1,6 @@
+{-| An example of a sortable list using drag and drop
+See the README.md file for more information
+-}
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, on)
