@@ -68,7 +68,6 @@ initialList =
 
 type Msg
     = ToggleReorder
-    | Move Int Int
     | DragStart Int Position
     | DragAt Position
     | DragEnd Position
@@ -79,9 +78,6 @@ update msg model =
     case msg of
         ToggleReorder ->
             { model | isReordering = not model.isReordering } ! []
-
-        Move fromPos offset ->
-            { model | data = moveItem fromPos offset model.data } ! []
 
         DragStart idx pos ->
             { model
