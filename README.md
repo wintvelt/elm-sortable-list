@@ -1,15 +1,15 @@
 # **Elm Sortable List**
 
-An small example app demonstrating a list that you can
-reorder using drag and drop.
+Example app demonstrating a list with
+drag and drop reordering.
 
 ![gif](/img/looping.gif)
 
 
 # Get started
 - Make sure you have elm 0.18 installed
-- The example also needs the Mouse package for elm
-- Copy or clone the files from the /src folder
+- The example also needs the Mouse package
+- Copy or clone the 2 files from the /src folder
 - You can run elm-sortable-table.elm in elm-reactor
 
 

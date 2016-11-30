@@ -231,16 +231,6 @@ itemView model idx item =
             ]
 
 
-getY : Model -> Int
-getY model =
-    case model.drag of
-        Just { startY, currentY } ->
-            currentY - startY
-
-        Nothing ->
-            0
-
-
 onMouseDown : (Position -> msg) -> Attribute msg
 onMouseDown msg =
     on "mousedown" (Decode.map msg Mouse.position)
