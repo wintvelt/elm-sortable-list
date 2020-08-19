@@ -1,60 +1,89 @@
 module Styles exposing (..)
+
 {-| Static styles used in elm-sortable-table
 -}
 
-type alias StyleList = List (String, String)
+import Html exposing (Attribute)
+import Html.Attributes exposing (..)
+
+
+type alias StyleList msg =
+    List (Attribute msg)
+
 
 
 -- for page container (root element)
-pageContainer : StyleList
+
+
+pageContainer : StyleList msg
 pageContainer =
-    [ ("width","360px")
-    , ("margin","auto")
-    , ("padding","0 0 8px 0")
-    , ("backgroundColor","#fafafa")
-    , ("fontFamily","sans-serif")
+    [ style "width" "360px"
+    , style "margin" "auto"
+    , style "padding" "0 0 8px 0"
+    , style "backgroundColor" "#fafafa"
+    , style "fontFamily" "sans-serif"
     ]
+
+
 
 -- for list header (with title and toggle button)
-listHeader : StyleList
+
+
+listHeader : StyleList msg
 listHeader =
-    [("display","flex")
-    ,("padding","8px")
-    ,("margin","8px 0")
-    ] 
+    [ style "display" "flex"
+    , style "padding" "8px"
+    , style "margin" "8px 0"
+    ]
+
+
 
 -- for title in header
-headerTitle : StyleList
+
+
+headerTitle : StyleList msg
 headerTitle =
-    [ ("flex","1 0 auto")
-    , ("margin","0")
+    [ style "flex" "1 0 auto"
+    , style "margin" "0"
     ]
+
+
 
 -- for list container (ul)
-listContainer : StyleList
+
+
+listContainer : StyleList msg
 listContainer =
-    [ ("transformStyle","preserve-3d")
-    , ("padding","0")
-    , ("margin","8px 0")
+    [ style "transformStyle" "preserve-3d"
+    , style "padding" "0"
+    , style "margin" "8px 0"
     ]
 
+
+
 -- for list item (li)
-listItem : StyleList
+
+
+listItem : StyleList msg
 listItem =
-  [ ("listStyleType","none")
-  , ("margin","8px")
-  , ("padding","8px")
-  , ("height","24px")
-  , ("backgroundColor", "white")
-  , ("border","1px solid rgba(0,0,0,.27)")
-  , ("border-radius","2px")
-  , ("box-shadow", "0 1px 2px rgba(0,0,0,0.24)")
-  , ("display","flex")
-  ]
+    [ style "listStyleType" "none"
+    , style "margin" "8px"
+    , style "padding" "8px"
+    , style "height" "24px"
+    , style "backgroundColor" "white"
+    , style "border" "1px solid rgba(0,0,0,.27)"
+    , style "border-radius" "2px"
+    , style "box-shadow" "0 1px 2px rgba(0,0,0,0.24)"
+    , style "display" "flex"
+    ]
+
+
 
 -- for text in list item container
-itemText : StyleList
+
+
+itemText : StyleList msg
 itemText =
-    [ ("flex","1 0 auto")
-    , ("display","inline-block") 
+    [ style "flex" "1 0 auto"
+    , style "display" "inline-block"
     ]
