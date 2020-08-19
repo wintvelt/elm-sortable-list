@@ -4,17 +4,19 @@ module Main exposing (..)
 See the README.md file for more information
 -}
 
+import Browser
+import Browser.Events
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick, on)
+import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
-import Mouse exposing (Position)
 import Styles
 
 
+main : Program () Model Msg
 main =
-    Html.program
-        { init = init
+    Browser.element
+        { init = \_ -> init
         , view = view
         , update = update
         , subscriptions = subscriptions
@@ -34,18 +36,12 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    { isReordering = False
-    , data = initialList |> List.sort
-    , drag = Nothing
-    }
-        ! []
-
-
-type alias Drag =
-    { itemIndex : Int
-    , startY : Int
-    , currentY : Int
-    }
+    ( { isReordering = False
+      , data = initialList |> List.sort
+      , drag = Nothing
+      }
+    , Cmd.none
+    )
 
 
 initialList =
@@ -62,8 +58,21 @@ initialList =
     ]
 
 
+type alias Drag =
+    { itemIndex : Int
+    , startY : Int
+    , currentY : Int
+    }
+
+
 
 -- UPDATE
+
+
+type alias Position =
+    { x : Int
+    , y : Int
+    }
 
 
 type Msg
@@ -77,46 +86,73 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ToggleReorder ->
-            { model | isReordering = not model.isReordering } ! []
+            ( { model | isReordering = not model.isReordering }, Cmd.none )
 
         DragStart idx pos ->
-            { model
-                | drag = Just <| Drag idx pos.y pos.y
-            }
-                ! []
+            ( { model
+                | drag =
+                    Just <|
+                        { itemIndex = idx
+                        , startY = pos.y
+                        , currentY = pos.y
+                        }
+              }
+            , Cmd.none
+            )
 
         DragAt pos ->
-            { model
+            let
+                minimumY =
+                    model.drag
+                        |> Maybe.map (\drag -> drag.startY - drag.itemIndex * 50)
+                        |> Maybe.withDefault 0
+
+                maximumY =
+                    model.drag
+                        |> Maybe.map (\drag -> drag.startY + 50 * ((model.data |> List.length) - 1 - drag.itemIndex))
+                        |> Maybe.withDefault 0
+
+                clampedY =
+                    pos.y
+                        |> clamp minimumY maximumY
+            in
+            ( { model
                 | drag =
-                    Maybe.map (\{ itemIndex, startY } -> Drag itemIndex startY pos.y) model.drag
-            }
-                ! []
+                    Maybe.map (\drag -> { drag | currentY = clampedY }) model.drag
+              }
+            , Cmd.none
+            )
 
         DragEnd pos ->
             case model.drag of
                 Just { itemIndex, startY, currentY } ->
-                    { model
+                    ( { model
                         | data =
                             moveItem
                                 itemIndex
-                                ((currentY - startY
-                                    + if currentY < startY then
+                                ((currentY
+                                    - startY
+                                    + (if currentY < startY then
                                         -20
-                                      else
+
+                                       else
                                         20
+                                      )
                                  )
                                     // 50
                                 )
                                 model.data
                         , drag = Nothing
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
                 Nothing ->
-                    { model
+                    ( { model
                         | drag = Nothing
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
 
 moveItem : Int -> Int -> List a -> List a
@@ -128,9 +164,95 @@ moveItem fromPos offset list =
         moved =
             List.take 1 <| List.drop fromPos list
     in
-        List.take (fromPos + offset) listWithoutMoved
-            ++ moved
-            ++ List.drop (fromPos + offset) listWithoutMoved
+    List.take (fromPos + offset) listWithoutMoved
+        ++ moved
+        ++ List.drop (fromPos + offset) listWithoutMoved
+
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div
+        Styles.pageContainer
+        [ div Styles.listHeader
+            [ h3 Styles.headerTitle
+                [ text "Sortable favorite movies" ]
+            , toggleButton model
+            ]
+        , ul Styles.listContainer <|
+            List.indexedMap (itemView model) model.data
+        ]
+
+
+toggleButton : Model -> Html Msg
+toggleButton model =
+    let
+        buttonTxt =
+            if model.isReordering then
+                "Reordering"
+
+            else
+                "Click to reorder"
+    in
+    button [ onClick ToggleReorder ] [ text buttonTxt ]
+
+
+itemView : Model -> Int -> String -> Html Msg
+itemView model idx item =
+    let
+        buttonStyle =
+            if model.isReordering then
+                [ style "display" "inline-block" ]
+
+            else
+                [ style "display" "none" ]
+
+        moveStyle =
+            case model.drag of
+                Just { itemIndex, startY, currentY } ->
+                    if itemIndex == idx then
+                        [ style "transform" ("translateY( " ++ String.fromInt (currentY - startY) ++ "px) translateZ(10px)")
+                        , style "box-shadow" "0 3px 6px rgba(0,0,0,0.24)"
+                        , style "willChange" "transform"
+                        ]
+
+                    else
+                        []
+
+                Nothing ->
+                    []
+
+        makingWayStyle =
+            case model.drag of
+                Just { itemIndex, startY, currentY } ->
+                    if (idx < itemIndex) && (currentY - startY) < (idx - itemIndex) * 50 + 20 then
+                        [ style "transform" "translateY(50px)"
+                        , style "transition" "transform 200ms ease-in-out"
+                        ]
+
+                    else if (idx > itemIndex) && (currentY - startY) > (idx - itemIndex) * 50 - 20 then
+                        [ style "transform" "translateY(-50px)"
+                        , style "transition" "transform 200ms ease-in-out"
+                        ]
+
+                    else if idx /= itemIndex then
+                        [ style "transition" "transform 200ms ease-in-out" ]
+
+                    else
+                        []
+
+                Nothing ->
+                    []
+    in
+    li (Styles.listItem ++ moveStyle ++ makingWayStyle)
+        [ div Styles.itemText [ text item ]
+        , button
+            (buttonStyle ++ [ onMouseDown <| DragStart idx ])
+            [ text "drag" ]
+        ]
 
 
 
@@ -144,93 +266,19 @@ subscriptions model =
             Sub.none
 
         Just _ ->
-            Sub.batch [ Mouse.moves DragAt, Mouse.ups DragEnd ]
+            Sub.batch
+                [ Browser.Events.onMouseMove <| Decode.map DragAt mouseDecoder
+                , Browser.Events.onMouseUp <| Decode.map DragEnd mouseDecoder
+                ]
 
 
-
--- VIEW
-
-
-view : Model -> Html Msg
-view model =
-    div
-        [ style Styles.pageContainer ]
-        [ div
-            [ style Styles.listHeader ]
-            [ h3
-                [ style Styles.headerTitle ]
-                [ text "Sortable favorite movies" ]
-            , toggleButton model
-            ]
-        , ul
-            [ style Styles.listContainer ]
-          <|
-            List.indexedMap (itemView model) model.data
-        ]
-
-
-toggleButton : Model -> Html Msg
-toggleButton model =
-    let
-        buttonTxt =
-            if model.isReordering then
-                "Reordering"
-            else
-                "Click to reorder"
-    in
-        button [ onClick ToggleReorder ] [ text buttonTxt ]
-
-
-itemView : Model -> Int -> String -> Html Msg
-itemView model idx item =
-    let
-        buttonStyle =
-            if model.isReordering then
-                [ ( "display", "inline-block" ) ]
-            else
-                [ ( "display", "none" ) ]
-
-        moveStyle =
-            case model.drag of
-                Just { itemIndex, startY, currentY } ->
-                    if itemIndex == idx then
-                        [ ( "transform", "translateY( " ++ toString (currentY - startY) ++ "px) translateZ(10px)" )
-                        , ( "box-shadow", "0 3px 6px rgba(0,0,0,0.24)" )
-                        , ( "willChange", "transform" )
-                        ]
-                    else
-                        []
-
-                Nothing ->
-                    []
-
-        makingWayStyle =
-            case model.drag of
-                Just { itemIndex, startY, currentY } ->
-                    if (idx < itemIndex) && (currentY - startY) < (idx - itemIndex) * 50 + 20 then
-                        [ ( "transform", "translateY(50px)" )
-                        , ( "transition", "transform 200ms ease-in-out" )
-                        ]
-                    else if (idx > itemIndex) && (currentY - startY) > (idx - itemIndex) * 50 - 20 then
-                        [ ( "transform", "translateY(-50px)" )
-                        , ( "transition", "transform 200ms ease-in-out" )
-                        ]
-                    else if idx /= itemIndex then
-                        [ ( "transition", "transform 200ms ease-in-out" ) ]
-                    else
-                        []
-
-                Nothing ->
-                    []
-    in
-        li [ style <| Styles.listItem ++ moveStyle ++ makingWayStyle ]
-            [ div [ style Styles.itemText ] [ text item ]
-            , button
-                [ style buttonStyle, onMouseDown <| DragStart idx ]
-                [ text "drag" ]
-            ]
+mouseDecoder : Decode.Decoder Position
+mouseDecoder =
+    Decode.map2 Position
+        (Decode.at [ "clientX" ] Decode.int)
+        (Decode.at [ "clientY" ] Decode.int)
 
 
 onMouseDown : (Position -> msg) -> Attribute msg
 onMouseDown msg =
-    on "mousedown" (Decode.map msg Mouse.position)
+    on "mousedown" (Decode.map msg mouseDecoder)

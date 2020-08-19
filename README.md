@@ -1,4 +1,4 @@
-# **Elm Sortable List**
+# **Elm Sortable List 0.19**
 
 Example app demonstrating a list with
 drag and drop reordering.
